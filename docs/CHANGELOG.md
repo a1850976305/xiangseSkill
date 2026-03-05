@@ -1,0 +1,60 @@
+# Changelog
+
+## 2026-03-05
+- 新增 `shuhaoxs` 成品书源（站内可用优先方案）：
+  - 搜索：分类遍历 + 关键词过滤（fallback，可用优先）
+  - 详情：`og:*` 元数据优先（书名/作者/分类/状态/更新时间/最新章节/封面）
+  - 目录：`index.php?action=loadChapterPage` 分页接口
+  - 目录分页去重：按 `chapterorder` 页范围过滤，防越界页重复
+  - 正文分页：`/{aid}-{cid}-{page}.html` 同章守卫
+- 文档/skill 补充 `shuhaoxs` 经验沉淀：
+  - 外部加密搜索链路识别与降级策略
+  - `loadChapterPage` 重复页防护（禁止仅靠 `list.length` 翻页）
+- 新增 `sudugu` 成品书源（DOM + 分页守卫方案）：
+  - 搜索：`/i/sor.aspx?key=...&p=...`（GET + 编码）
+  - 目录分页：`p-2.html#dir` 链路
+  - 正文分页：`/{bookId}/{chapterId}-N.html` 同章守卫（防误跳下一章）
+  - 分类分页：`/{cat}/{page}.html` 路径模板
+- 文档/skill 补充 `sudugu` 经验沉淀：
+  - `chapterContent.nextPageUrl` 必须做“同章分页守卫”
+  - 分类分页 URL 形态必须实测，不允许猜测 `p-2`/`_2`
+- 新增 `66shuba` 成品书源（API-first 方案）：
+  - `search/detail/catalog/chapter` 全链路 JSON 接口
+  - 搜索 `CardList -> Body -> ItemData` 扁平化
+  - 目录哨兵章节过滤（`C/chapterId/id <= 0` 丢弃）
+  - 正文接口 `chapter/vip-chapter` 自动分流
+  - 占位正文识别（`code=0` 但内容为“网络开小差了”）
+- 文档补充 `66shuba` 经验沉淀：
+  - API-first 站点优先策略
+  - 目录有效章节过滤规范
+  - 占位正文排障标准
+- 补充 `deqixs` 二跳正文接口经验沉淀：
+  - `chapter.js.php -> ajax2.php` token 链路识别与实现
+  - `ajax2` 动态请求头要求（`X-Requested-With` + 章节页 `Referer`）
+  - `status=1` 但正文空的混合响应排障（禁止 `chapterToken` 早退）
+- 更新维护流程检查项：
+  - 增加“接口二跳正文”识别
+  - 增加“仅支持网页端访问/不支持该客户端访问”排障步骤
+  - 增加“`status=1` 但正文空”专项校验
+- 更新 `xbs-booksource-workflow` skill（项目镜像 + `~/.codex/skills`）：
+  - 新增 deqixs 风控请求头与混合响应解析实战规则
+  - 调整策略为“优先接口二跳，webView 作为回退”
+
+## 2026-03-04
+- 建立 `booksource_project` 正式项目结构。
+- 归档稳定成品书源：`shukuge v0304`、`txtdd v0303`、`bcshuku v0304`。
+- 归档测试书源、HTML 样本、规则文档与 skill 镜像。
+- 新增工具脚本：`json2xbs.sh`、`xbs2json.sh`、`roundtrip_check.sh`、`refresh_git_records.sh`。
+- 固化章节列表兼容规则：`//text()` 与 `//@href`。
+- 新增 `apps/web-validator`：香色书源 Web 检测平台（React + Vite + Tailwind / Express + TypeScript）。
+- 新增 5 个 API：`source/normalize`、`validate/run`、`validate/step`、`source/patch`、`source/export`。
+- 新增规则引擎能力：`requestInfo @js`、模板变量替换、DOM XPath 解析、字段 `||@js` 后处理、live/fixture 双模式。
+- 新增半自动修复策略：`text() -> //text()`、`@href -> //@href`、`sourceName` 后缀修正、`weight` 归一化。
+- 新增 server 单元/集成测试，fixture 模式下完成 `shukuge_source_v0304` 三步链路回归。
+- 新增 `deqixs` 实战经验沉淀：
+  - 搜索中文参数规范：`GET + encodeURIComponent`
+  - 搜索“列表页/直达详情页”双形态 URL 兜底策略
+  - `requestInfo` URL 清洗转义兼容规范（`split('\\\\/').join('/')`）
+  - `bookWorld` 分类性能策略（禁默认连翻，按 `pageIndex` 单页拉取）
+  - 动态正文 `webView + webViewJs` 回填流程
+- 同步更新文档：`香色书源开发指南与工作流程.md`、`XBS_JSON_CODING_RULES.md`、`MAINTENANCE_WORKFLOW.md`、`RETROSPECT_LOG.md`。

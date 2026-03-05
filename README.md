@@ -5,6 +5,13 @@
 - Codex 技能（skill）沉淀
 - 实战规则文档维护
 
+## 视频与社群
+
+- B站视频：
+  [别再手写书源了！用ChatGPT Codex 全自动转换开源阅读书源（成功率90%）](https://www.bilibili.com/video/BV14JPrzxEd2/?share_source=copy_web&vd_source=13e2e41429e96311a744cc03ef2e7861)
+- 公众号：好用的软件站
+- 微信群：香色闺阁自动写源群（扫码入群，二维码以最新版本为准）
+
 ## 目录说明
 
 - `tools/scripts/`: 转换脚本
@@ -87,4 +94,3 @@ bash tools/scripts/roundtrip_check.sh <input.json> <output_prefix>
 - `docs/香色书源开发指南与工作流程.md`
 - `docs/XBS_JSON_CODING_RULES.md`
 - `docs/RETROSPECT_LOG.md`
-

@@ -1,6 +1,11 @@
 # Changelog
 
 ## 2026-03-06
+- 新增跨平台转换入口，兼容 Windows / Termux / macOS / Linux：
+  - 新增 `tools/scripts/xbs_tool.py`（`json2xbs/xbs2json/roundtrip/doctor`）
+  - `.sh` 脚本改为调用 `xbs_tool.py`，统一执行链路
+  - 新增 Windows `.cmd` 封装：`json2xbs.cmd`、`xbs2json.cmd`、`roundtrip_check.cmd`
+  - README 和 skill 补充“普通用户可复制命令”与环境探测顺序
 - 新增 `libahao` 实战规则沉淀（搜索/分类字段污染修复）：
   - 明确香色运行时 `list` 子字段 XPath 统一 `//` 开头，禁用 `./...` 写法
   - 修复“整行文本污染”问题（空白与 `\n` 统一清洗）

@@ -24,9 +24,13 @@
 ## 目录说明
 
 - `tools/scripts/`: 转换脚本
+  - `xbs_tool.py`（跨平台主入口，推荐）
   - `json2xbs.sh`
   - `xbs2json.sh`
   - `roundtrip_check.sh`
+  - `json2xbs.cmd`（Windows）
+  - `xbs2json.cmd`（Windows）
+  - `roundtrip_check.cmd`（Windows）
 - `skills/global/`: 通用技能
   - `xbs-booksource-workflow.SKILL.md`
 - `skills/local/`: 项目约束技能
@@ -35,12 +39,18 @@
 
 ## 环境要求
 
-- macOS / Linux
-- Go 1.22+
-- 本地可运行 `xbsrebuild` 工具
+- Python 3.9+
+- Go 1.22+（当你没有预编译 `xbsrebuild` 可执行文件时需要）
+- `xbsrebuild` 工具满足任意一种即可：
+  - `xbsrebuild` 已加入 `PATH`
+  - 设置 `XBSREBUILD_BIN` 指向可执行文件（Windows 可指向 `.exe`）
+  - 设置 `XBSREBUILD_ROOT` 指向 `xbsrebuild` 源码目录（脚本会自动 `go run`）
 
-默认脚本会读取环境变量 `XBSREBUILD_ROOT`，未设置时回退到：
-`/Users/mantou/Documents/idea/3.2/xbsrebuild`
+默认会按以下顺序自动探测：
+1. `XBSREBUILD_BIN`
+2. `PATH` 中的 `xbsrebuild`
+3. `XBSREBUILD_ROOT`
+4. 仓库同级目录 `../xbsrebuild`
 
 建议显式设置：
 
@@ -48,21 +58,38 @@
 export XBSREBUILD_ROOT=/path/to/xbsrebuild
 ```
 
+Windows PowerShell 建议：
+
+```powershell
+$env:XBSREBUILD_BIN="D:\tools\xbsrebuild.exe"
+```
+
 ## 书源转换用法
 
-### 1) JSON -> XBS
+### 推荐（跨平台统一命令）
+
+```bash
+python tools/scripts/xbs_tool.py doctor
+python tools/scripts/xbs_tool.py json2xbs -i <input.json> -o <output.xbs>
+python tools/scripts/xbs_tool.py xbs2json -i <input.xbs> -o <output.json>
+python tools/scripts/xbs_tool.py roundtrip -i <input.json> -p <output_prefix>
+```
+
+### macOS / Linux / Termux（兼容旧命令）
+
+#### 1) JSON -> XBS
 
 ```bash
 bash tools/scripts/json2xbs.sh <input.json> <output.xbs>
 ```
 
-### 2) XBS -> JSON
+#### 2) XBS -> JSON
 
 ```bash
 bash tools/scripts/xbs2json.sh <input.xbs> <output.json>
 ```
 
-### 3) 回转校验（推荐）
+#### 3) 回转校验（推荐）
 
 ```bash
 bash tools/scripts/roundtrip_check.sh <input.json> <output_prefix>
@@ -71,6 +98,21 @@ bash tools/scripts/roundtrip_check.sh <input.json> <output_prefix>
 会生成：
 - `<output_prefix>.xbs`
 - `<output_prefix>.roundtrip.json`
+
+### Windows（CMD）
+
+```bat
+tools\scripts\json2xbs.cmd <input.json> <output.xbs>
+tools\scripts\xbs2json.cmd <input.xbs> <output.json>
+tools\scripts\roundtrip_check.cmd <input.json> <output_prefix>
+```
+
+### Windows（PowerShell）
+
+```powershell
+python .\tools\scripts\xbs_tool.py doctor
+python .\tools\scripts\xbs_tool.py json2xbs -i .\in.json -o .\out.xbs
+```
 
 ## 如何正确使用我们的 skill
 
@@ -87,6 +129,15 @@ bash tools/scripts/roundtrip_check.sh <input.json> <output_prefix>
 
 ```text
 请同时按 $xbs-booksource-workflow 和本仓库 local 规则实现并验证。
+```
+
+给普通用户的建议话术（可直接复制）：
+
+```text
+请使用 $xbs-booksource-workflow，按 Windows/Termux 兼容流程输出：
+1) 先给 JSON 规则
+2) 再给 xbs_tool.py 转换命令
+3) 最后给 roundtrip 校验命令和失败排查点
 ```
 
 ### 推荐工作流

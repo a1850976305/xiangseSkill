@@ -24,6 +24,11 @@
 8. 目录接口若为 `index.php?action=loadChapterPage` 且按页返回章节：
    - 需防“越界页重复最后一页/短书重复第 1 页”；
    - `nextPageUrl` 不能仅按 `list.length > 0` 决定，需叠加 `chapterorder` 页范围校验（如每页 `1-100`、`101-200`）。
+9. 转换命令统一优先给跨平台入口：
+   - `python tools/scripts/xbs_tool.py json2xbs -i <json> -o <xbs>`
+   - `python tools/scripts/xbs_tool.py xbs2json -i <xbs> -o <json>`
+   - `python tools/scripts/xbs_tool.py roundtrip -i <json> -p <prefix>`
+   - 仅在用户明确是 macOS/Linux/bash 时，再给 `.sh` 版本命令。
 
 ## 推荐模板
 ```json
@@ -47,3 +52,4 @@
 - JSON 与 XBS 同步更新
 - 名称后缀一致
 - 章节列表返回包含 `title + url + detailUrl`
+- 对 Windows/Termux 用户补充可直接运行命令，不要求用户手改脚本路径。

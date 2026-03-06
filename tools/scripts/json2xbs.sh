@@ -6,18 +6,10 @@ if [[ $# -ne 2 ]]; then
   exit 1
 fi
 
-INPUT_JSON="$1"
-OUTPUT_XBS="$2"
-PROJECT_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-XBSREBUILD_ROOT="${XBSREBUILD_ROOT:-/Users/mantou/Documents/idea/3.2/xbsrebuild}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PYTHON_BIN="${PYTHON_BIN:-python3}"
+if ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then
+  PYTHON_BIN="python"
+fi
 
-mkdir -p "$PROJECT_ROOT/.cache/gocache" "$PROJECT_ROOT/.cache/gomodcache"
-
-cd "$XBSREBUILD_ROOT"
-GOPROXY="${GOPROXY:-https://goproxy.cn,direct}" \
-GOSUMDB="${GOSUMDB:-sum.golang.google.cn}" \
-GOCACHE="$PROJECT_ROOT/.cache/gocache" \
-GOMODCACHE="$PROJECT_ROOT/.cache/gomodcache" \
-go run . json2xbs -i "$INPUT_JSON" -o "$OUTPUT_XBS"
-
-echo "OK: $OUTPUT_XBS"
+"$PYTHON_BIN" "$SCRIPT_DIR/xbs_tool.py" json2xbs -i "$1" -o "$2"

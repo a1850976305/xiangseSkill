@@ -37,8 +37,11 @@
     - `nextPageUrl` 判定要叠加 `chapterorder` 页范围校验，不能只看 `list.length`。
 
 ## 2. 转换与验证
-- `json2xbs` 生成 xbs。
-- `xbs2json` 回转，确认关键字段未丢失。
+- 优先使用跨平台入口：
+  - `python tools/scripts/xbs_tool.py json2xbs -i <input.json> -o <output.xbs>`
+  - `python tools/scripts/xbs_tool.py xbs2json -i <input.xbs> -o <output.json>`
+  - `python tools/scripts/xbs_tool.py roundtrip -i <input.json> -p <prefix>`
+- 兼容保留：`json2xbs.sh / xbs2json.sh / roundtrip_check.sh`（内部已转调 `xbs_tool.py`）。
 - 至少验证：`searchBook`、`bookDetail`、`chapterList`、`chapterContent`。
 - 补充验证（必须）：
   - `searchBook`：模糊词（列表页）与精确词（直达详情页）各测 1 次。

@@ -204,7 +204,13 @@ See detailed pitfalls: [references/xiangse-parser-pitfalls.md](references/xiangs
 
 ## Step 4: Convert Between JSON and XBS
 
-Use either:
+Preferred (cross-platform, including Windows/Termux):
+
+- `python tools/scripts/xbs_tool.py json2xbs -i <input.json> -o <output.xbs>`
+- `python tools/scripts/xbs_tool.py xbs2json -i <input.xbs> -o <output.json>`
+- `python tools/scripts/xbs_tool.py roundtrip -i <input.json> -p <output_prefix>`
+
+Fallback:
 
 - `xbsrebuild xbs2json/json2xbs`
 - Python fallback implementing XXTEA + appended plain-length tail

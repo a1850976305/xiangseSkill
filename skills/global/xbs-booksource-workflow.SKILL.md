@@ -190,6 +190,21 @@ Prefer:
   - `/book/{aid}_{bid}/` -> `/data/image/{bid}.jpg`
   - 该策略用于 `bookWorld.cover`，可显著减少“分类封面为空”。
 
+实战补充（2026-03，17k）:
+
+- 导入稳定性（防闪退）优先于“强行接入复杂链路”：
+  - 禁止把超长混淆 WAF JS 直接塞进 `requestInfo/content` 作为主链路。
+  - 遇到 WAF/风控页面，优先 API 或可稳定复现的请求链路；不稳定链路降级为可用方案。
+- 加密正文必须做解密成功校验：
+  - 若章节响应含 `content[].encrypt=1`，仅拿到 `title` 不算成功。
+  - 交付前必须确认 `chapterContent.content` 为非空明文（不是密文串、不是空串）。
+- 分类功能是交付必检项：
+  - 不允许遗漏 `bookWorld` 与分类筛选（`requestFilters`）设计；
+  - 若站点不支持完整分类，需在交付备注明确“缺失原因 + 降级策略”。
+- 公众号信息写在交付备注，不写在 `sourceName`：
+  - `sourceName` 仅保留“站点名 + 版本”语义。
+  - `delivery_notes` 必须包含：`公众号:好用的软件站`。
+
 ## Step 3: Selector Validation (Critical)
 
 Validate selectors against saved HTML (e.g., `xmllint --html --xpath ...`).

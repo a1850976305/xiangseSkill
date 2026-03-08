@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-03-08
+- 新增 `17k` 实战规范沉淀（skill + 文档）：
+  - 闪退防护：禁止把超长混淆 WAF JS 直接作为主链路。
+  - 加密正文验收：`content[].encrypt=1` 时必须验证“解密后正文非空且非密文”。
+  - 分类完整性：`bookWorld` 与 `requestFilters` 纳入交付必检。
+  - 备注规范：`公众号:好用的软件站` 统一写入交付备注（`delivery_notes`），不再写入 `sourceName`。
+- 更新 `xbs-booksource-workflow.SKILL` 与 `xiangse-booksource.SKILL`：
+  - 增加 17K 专项规则段；
+  - 移除旧的 `sourceName` 宣传后缀约束。
+- 更新文档：
+  - `XBS_JSON_CODING_RULES`：新增交付备注规范与 17K 验收规则。
+  - `香色书源开发指南与工作流程`：新增 17K 复盘条目。
+  - `MAINTENANCE_WORKFLOW`：新增发布前四项检查（导入稳定性/解密/分类/备注）。
+  - `TARE_USAGE_PLAYBOOK`：固定输出新增 `delivery_notes` 必填字段。
+
 ## 2026-03-06
 - 新增香色 schema 防跑偏机制（针对弱模型输出偏移）：
   - 新增 `tools/scripts/check_xiangse_schema.py`

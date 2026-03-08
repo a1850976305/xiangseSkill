@@ -7,7 +7,8 @@
 - 需要把任务交给弱模型（如 Tare）执行
 
 ## 固定规则
-1. 书源名称必须以 `(公众号:好用的软件站)` 结尾。
+1. `sourceName` 保持站点名与版本号语义，不追加公众号后缀。
+   - 公众号信息统一写在交付备注区（`delivery_notes`）：`公众号:好用的软件站`。
 2. `chapterList` 里即使 `list` 已经相对定位到章节节点（例如已到 `<a>`），`title/url/detailUrl` 也默认使用双斜杠写法：
    - `title: //text()`
    - `url: //@href`
@@ -25,16 +26,19 @@
 8. 目录接口若为 `index.php?action=loadChapterPage` 且按页返回章节：
    - 需防“越界页重复最后一页/短书重复第 1 页”；
    - `nextPageUrl` 不能仅按 `list.length > 0` 决定，需叠加 `chapterorder` 页范围校验（如每页 `1-100`、`101-200`）。
-9. 转换命令统一优先给跨平台入口：
+9. 17K 类加密正文站点必须做解密验收：
+   - 当响应存在 `content[].encrypt=1` 时，禁止把“`title` 有值但 `content` 为空”判定为成功。
+   - 需要明确记录“解密前片段/解密后片段”至少各 1 条样例。
+10. 转换命令统一优先给跨平台入口：
    - `python tools/scripts/xbs_tool.py json2xbs -i <json> -o <xbs>`
    - `python tools/scripts/xbs_tool.py xbs2json -i <xbs> -o <json>`
    - `python tools/scripts/xbs_tool.py roundtrip -i <json> -p <prefix>`
    - 仅在用户明确是 macOS/Linux/bash 时，再给 `.sh` 版本命令。
-10. 转换前必须先过 schema 体检（硬门槛）：
+11. 转换前必须先过 schema 体检（硬门槛）：
    - `python tools/scripts/check_xiangse_schema.py <json>`
    - 若失败，先修 JSON 结构，再做 json2xbs。
    - `xbs_tool.py` 已默认内置此检查；失败会直接中断转换。
-11. 严禁混入非香色 schema 字段与运行时：
+12. 严禁混入非香色 schema 字段与运行时：
    - 禁用：`bookSourceName/bookSourceUrl/bookSourceGroup/httpUserAgent`
    - 禁用：`java.getParams()`、`method:`、`data:`、`headers:`
    - 使用：`sourceName/sourceUrl/sourceType` + `config/params/result` + `POST/httpParams/httpHeaders`
@@ -59,8 +63,10 @@
 
 ## 交付检查
 - JSON 与 XBS 同步更新
-- 名称后缀一致
+- 交付备注包含：`公众号:好用的软件站`
 - 章节列表返回包含 `title + url + detailUrl`
+- 若章节返回加密正文（如 `encrypt=1`），必须给出“解密成功且正文非空”的验证结论
+- 分类功能不可缺失：`bookWorld` 与 `requestFilters` 两者都应提供；若站点限制无法提供，需在 `delivery_notes` 说明原因与降级策略
 - 对 Windows/Termux 用户补充可直接运行命令，不要求用户手改脚本路径。
 
 ## 弱模型（Tare）执行模式

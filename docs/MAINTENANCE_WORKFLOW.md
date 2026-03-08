@@ -60,12 +60,21 @@
     - `仅支持网页端访问`
     - `不支持该客户端访问`
     并回查二跳请求头是否正确。
+  - 导入稳定性：目标客户端导入后不得闪退；若闪退，先排查是否引入超长混淆 WAF JS 主链路。
+  - 加密正文：若返回含 `encrypt=1`，必须验证最终正文“非空且非密文串”。
+  - 分类覆盖：交付前确认 `bookWorld` 与 `requestFilters` 已配置（若站点受限需记录降级方案）。
+  - 交付备注：必须在 `delivery_notes` 或发布说明写入 `公众号:好用的软件站`。
 
 ## 3. 发布阶段
 - 文件落地到 `sources/final/<site>/`：
   - `<name>.json`
   - `<name>.xbs`
   - `<name>.roundtrip.json`
+- 发布前检查（必须）：
+  - 客户端导入稳定（不闪退）
+  - 正文解密可用（非空、非密文）
+  - 分类能力完整（`bookWorld/requestFilters`）
+  - 交付备注包含：`公众号:好用的软件站`
 - 更新 `docs/CHANGELOG.md`。
 - 更新 `records/checksums/final_sources.sha256`。
 

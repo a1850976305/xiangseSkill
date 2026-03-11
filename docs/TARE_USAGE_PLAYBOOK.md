@@ -2,6 +2,7 @@
 
 目标：让能力较弱的模型也能稳定使用本仓库的规则与 skill。  
 原则：少思考、少分支、强约束、固定格式。
+范围：仅香色闺阁（StandarReader）2.56.1，不做安卓阅读/跨客户端兼容。
 
 ## 1. 执行总规则
 
@@ -92,10 +93,13 @@ must_rules=使用 xbs_tool.py，给出可复制命令
     }
   ],
   "commands": [
-    "python tools/scripts/check_xiangse_schema.py /abs/in.json",
+    "python tools/scripts/xbs_tool.py xbs2json -i /abs/in.xbs -o /abs/in.decoded.json",
+    "python tools/scripts/xbs_tool.py import-fix -i /abs/in.decoded.json -o /abs/fixed.json --to-xbs /abs/fixed.xbs --report /abs/fix_report.json",
+    "python tools/scripts/check_xiangse_schema.py /abs/fixed.json",
+    "python tools/scripts/xbs_tool.py check-editor -i /abs/fixed.json",
     "python tools/scripts/xbs_tool.py doctor",
-    "python tools/scripts/xbs_tool.py json2xbs -i /abs/in.json -o /abs/out.xbs",
-    "python tools/scripts/xbs_tool.py roundtrip -i /abs/in.json -p /abs/verify/out"
+    "python tools/scripts/xbs_tool.py json2xbs -i /abs/fixed.json -o /abs/out.xbs",
+    "python tools/scripts/xbs_tool.py roundtrip -i /abs/fixed.json -p /abs/verify/out"
   ],
   "self_check": [
     "listLengthOnlyDebug > 0 且关键字段非空",
@@ -107,13 +111,16 @@ must_rules=使用 xbs_tool.py，给出可复制命令
   ],
   "need_user_confirm": [],
   "schema_check": "PASS",
+  "editor_check": "PASS",
   "schema_errors": [],
+  "editor_errors": [],
   "next_action": "可直接执行 commands"
 }
 ```
 
 输出里必须包含：
 - `schema_check`: `PASS` 或 `FAIL`
+- `editor_check`: `PASS` / `WARN` / `FAIL`
 - `delivery_notes[]`：必须至少包含 `公众号:好用的软件站`
 - 若 `FAIL`，必须给 `schema_errors[]`，且 `next_action` 只能是“先修 schema”
 
@@ -129,6 +136,7 @@ must_rules=使用 xbs_tool.py，给出可复制命令
 7. 禁止在 `requestInfo` 使用：
    - `java.getParams()`
    - `method:`、`data:`、`headers:`
+8. 禁止输出 `sourceType` 非 `"text"` 的书源。
 
 ## 6. 失败兜底模板
 

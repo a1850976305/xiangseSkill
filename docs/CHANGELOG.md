@@ -1,6 +1,17 @@
 # Changelog
 
 ## 2026-03-11
+- 香色闺阁规则提取能力收敛（Xiangse-only）：
+  - 目标客户端明确为 StandarReader 2.56.1，不再以安卓阅读/跨客户端兼容为目标
+  - `check_xiangse_schema.py` 强化硬约束：
+    - `sourceType` 必须为 `"text"`（非 text 直接 FAIL）
+    - `requestInfo` 必须为字符串（非字符串直接 FAIL）
+  - `xbs_tool.py` 新增 `import-fix`：
+    - 支持 `.xbs/.json` 输入
+    - 自动补齐缺失 `requestInfo/responseFormatType`，归一化 `sourceType/enable/weight`
+    - 归一化 `bookWorld.moreKeys.requestFilters` 为字符串
+    - 可选输出修复后 XBS 与修复报告
+  - Skill/README/TARE/维护流程同步到“先 import-fix 再校验转换”的固定链路
 - Windows 开箱即用转换能力落地（无需 Go）：
   - 新增内置二进制：`tools/bin/windows/xbsrebuild.exe`（amd64）
   - 新增元数据：`tools/bin/windows/xbsrebuild.metadata.json`（`source_commit` + `sha256`）

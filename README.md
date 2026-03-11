@@ -1,14 +1,16 @@
 # xiangseSkill
 
-香色闺阁书源开发资料仓库，聚焦三件事：
+香色闺阁（StandarReader 2.56.1）书源开发资料仓库，聚焦三件事：
 - 书源格式转换（JSON <-> XBS）
 - Codex 技能（skill）沉淀
 - 实战规则文档维护
 
+注意：本仓仅服务香色闺阁 2.56.1，不承担安卓阅读/跨客户端兼容目标。
+
 ## 视频与社群
 
 - B站视频：
-  [别再手写书源了！用ChatGPT Codex 全自动转换开源阅读书源（成功率90%）](https://www.bilibili.com/video/BV14JPrzxEd2/?share_source=copy_web&vd_source=13e2e41429e96311a744cc03ef2e7861)
+  [别再手写书源了！用 ChatGPT Codex 全自动转换香色闺阁书源（成功率90%）](https://www.bilibili.com/video/BV14JPrzxEd2/?share_source=copy_web&vd_source=13e2e41429e96311a744cc03ef2e7861)
 - 公众号：好用的软件站
 
 公众号二维码：
@@ -81,6 +83,7 @@ $env:XBSREBUILD_BIN="D:\tools\xbsrebuild.exe"
 ### 推荐（跨平台统一命令）
 
 ```bash
+python tools/scripts/xbs_tool.py import-fix -i <input.xbs|input.json> -o <fixed.json> --to-xbs <fixed.xbs> --report <fix_report.json>
 python tools/scripts/check_xiangse_schema.py <input.json>
 python tools/scripts/xbs_tool.py doctor
 python tools/scripts/xbs_tool.py json2xbs -i <input.json> -o <output.xbs>
@@ -89,6 +92,7 @@ python tools/scripts/xbs_tool.py roundtrip -i <input.json> -p <output_prefix>
 ```
 
 说明：
+- `import-fix` 用于旧源导入修复：自动补齐 `requestInfo/responseFormatType` 等导入硬字段并输出修复报告。
 - `xbs_tool.py` 在 `json2xbs/roundtrip` 会自动执行 schema 检查并在失败时中断。
 - 仅在你明确要跳过时使用：`--skip-schema-check`。
 
@@ -151,7 +155,7 @@ python .\tools\scripts\xbs_tool.py json2xbs -i .\in.json -o .\out.xbs
 给普通用户的建议话术（可直接复制）：
 
 ```text
-请使用 $xbs-booksource-workflow，按 Windows/Termux 兼容流程输出：
+请使用 $xbs-booksource-workflow，按香色闺阁 2.56.1 专用流程输出：
 1) 先给 JSON 规则
 2) 再给 xbs_tool.py 转换命令
 3) 最后给 roundtrip 校验命令和失败排查点

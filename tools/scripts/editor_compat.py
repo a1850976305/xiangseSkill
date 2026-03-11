@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 CORE_ACTIONS = ["searchBook", "bookDetail", "chapterList", "chapterContent"]
+ALLOWED_RESPONSE_FORMAT_TYPES = {"", "html", "xml", "json", "base64str", "data"}
 
 
 @dataclass
@@ -69,6 +70,16 @@ def _to_int(v: Any, default: int) -> int:
         return default
 
 
+def _normalize_enable_to_int(v: Any, default: int = 1) -> int:
+    if isinstance(v, bool):
+        return 1 if v else 0
+    try:
+        iv = int(str(v).strip())
+    except Exception:
+        return default
+    return 1 if iv != 0 else 0
+
+
 def _normalize_weight_to_str(v: Any, default: str = "9999") -> str:
     if isinstance(v, bool):
         return default
@@ -99,6 +110,80 @@ def normalize_source_for_2561(source: dict[str, Any], *, default_weight: str = "
     if old_weight != new_weight:
         out["weight"] = new_weight
         changes.append(f"weight:{old_weight!r}->{new_weight!r}")
+
+    return out, changes
+
+
+def _infer_response_format_type(parser_id: Any) -> str:
+    p = str(parser_id or "").strip().upper()
+    if p == "JSON":
+        return "json"
+    if p == "JS":
+        return ""
+    if p == "XML":
+        return "xml"
+    if p in {"TEXT", "TXT"}:
+        return "data"
+    return "html"
+
+
+def normalize_source_for_import_fix(
+    source: dict[str, Any], *, default_weight: str = "9999"
+) -> tuple[dict[str, Any], list[str]]:
+    out = copy.deepcopy(source)
+    changes: list[str] = []
+
+    st_old = out.get("sourceType")
+    if st_old != "text":
+        out["sourceType"] = "text"
+        changes.append(f"sourceType:{st_old!r}->'text'")
+
+    enable_old = out.get("enable")
+    enable_new = _normalize_enable_to_int(enable_old, default=1)
+    if enable_old != enable_new:
+        out["enable"] = enable_new
+        changes.append(f"enable:{enable_old!r}->{enable_new!r}")
+
+    weight_old = out.get("weight")
+    weight_new = _normalize_weight_to_str(weight_old, default=default_weight)
+    if weight_old != weight_new:
+        out["weight"] = weight_new
+        changes.append(f"weight:{weight_old!r}->{weight_new!r}")
+
+    for action in CORE_ACTIONS:
+        obj = out.get(action)
+        if not isinstance(obj, dict):
+            continue
+
+        actid_old = obj.get("actionID")
+        if not isinstance(actid_old, str) or not actid_old.strip():
+            obj["actionID"] = action
+            changes.append(f"{action}.actionID:{actid_old!r}->{action!r}")
+
+        parser_old = obj.get("parserID")
+        parser_id = str(parser_old or "").strip()
+        if not parser_id:
+            parser_id = "DOM"
+            obj["parserID"] = parser_id
+            changes.append(f"{action}.parserID:{parser_old!r}->'DOM'")
+
+        req_old = obj.get("requestInfo")
+        if not isinstance(req_old, str) or not req_old.strip():
+            obj["requestInfo"] = "%@result"
+            changes.append(f"{action}.requestInfo:{type(req_old).__name__}->{'%@result'!r}")
+
+        rft_old = obj.get("responseFormatType")
+        rft_ok = isinstance(rft_old, str) and rft_old in ALLOWED_RESPONSE_FORMAT_TYPES
+        if not rft_ok:
+            inferred = _infer_response_format_type(obj.get("parserID"))
+            obj["responseFormatType"] = inferred
+            changes.append(f"{action}.responseFormatType:{rft_old!r}->{inferred!r}")
+
+    bw_old = out.get("bookWorld")
+    bw_new = normalize_bookworld_requestfilters_to_string(bw_old)
+    if bw_old != bw_new:
+        out["bookWorld"] = bw_new
+        changes.append("bookWorld.moreKeys.requestFilters:normalized_to_string")
 
     return out, changes
 

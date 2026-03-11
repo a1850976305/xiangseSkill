@@ -1,5 +1,7 @@
 # Maintenance Workflow
 
+适用范围：仅香色闺阁（StandarReader）2.56.1。
+
 ## 1. 开发阶段
 - 在 `sources/testing/<site>/` 新建或修改 json。
 - 使用 `samples/html/<site>/` 做选择器验证。
@@ -37,9 +39,16 @@
     - `nextPageUrl` 判定要叠加 `chapterorder` 页范围校验，不能只看 `list.length`。
 
 ## 2. 转换与验证
+- 旧源导入优先走自动修复（推荐）：
+  - `python tools/scripts/xbs_tool.py import-fix -i <input.xbs|input.json> -o <fixed.json> --to-xbs <fixed.xbs> --report <fix_report.json>`
+  - 后续校验与转换统一使用 `<fixed.json>` / `<fixed.xbs>`。
 - 转换前先执行 schema 体检（硬门槛）：
   - `python tools/scripts/check_xiangse_schema.py <input.json>`
   - 若失败，先修结构，不进入 `json2xbs`。
+- schema 硬约束补充：
+  - `sourceType` 必须为 `"text"`；
+  - 四大动作均需包含 `actionID/parserID/requestInfo/responseFormatType`；
+  - `requestInfo` 必须是字符串。
 - 转换前执行编辑兼容体检（StandarReader 2.56.1）：
   - `python tools/scripts/xbs_tool.py check-editor -i <input.json>`
   - 若失败（高风险），先产出 editor-safe 版本：

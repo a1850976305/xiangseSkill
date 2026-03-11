@@ -8,12 +8,15 @@ import platform
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 from editor_compat import (
     CORE_ACTIONS,
     build_ab_variants,
+    check_editor_risks,
     load_json,
+    normalize_source_for_import_fix,
     normalize_source_for_2561,
     pick_source,
     save_json,
@@ -389,9 +392,101 @@ def _command_normalize_2561(args: argparse.Namespace) -> None:
                 print(f"- {d['path']}: {d['reason']}")
 
 
+def _command_import_fix(args: argparse.Namespace) -> None:
+    input_path = Path(args.input).resolve()
+    output_json = Path(args.output).resolve()
+    output_xbs = Path(args.to_xbs).resolve() if args.to_xbs else None
+    report_path = Path(args.report).resolve() if args.report else None
+    default_weight = str(args.default_weight)
+
+    if not input_path.exists():
+        raise FileNotFoundError(f"input file not found: {input_path}")
+
+    suffix = input_path.suffix.lower()
+    if suffix not in {".xbs", ".json"}:
+        raise ValueError(f"import-fix only supports .xbs or .json input, got: {input_path}")
+
+    from_xbs = suffix == ".xbs"
+    temp_dir_ctx = tempfile.TemporaryDirectory(prefix="xbs_import_fix_") if from_xbs else None
+    temp_dir = Path(temp_dir_ctx.name) if temp_dir_ctx else None
+
+    try:
+        input_json = input_path
+        if from_xbs:
+            input_json = temp_dir / f"{input_path.stem}.decoded.json"
+            _run_xbsrebuild("xbs2json", input_path, input_json)
+
+        doc = load_json(input_json)
+        alias, src, mode = pick_source(doc)
+        normalized, changes = normalize_source_for_import_fix(
+            src, default_weight=default_weight
+        )
+
+        if mode == "new":
+            out_obj = dict(doc)
+            out_obj[alias] = normalized
+        else:
+            out_obj = normalized
+        save_json(output_json, out_obj)
+
+        _run_schema_check(
+            output_json,
+            strict_requestinfo=args.strict_requestinfo,
+        )
+
+        risks = check_editor_risks(normalized, mode=mode)
+        high_risks = [r for r in risks if r.level == "high"]
+        editor_result = "PASS" if not risks else ("FAIL" if high_risks else "WARN")
+
+        if output_xbs:
+            _run_xbsrebuild("json2xbs", output_json, output_xbs)
+
+        summary = {
+            "input": str(input_path),
+            "input_type": "xbs" if from_xbs else "json",
+            "decoded_json": str(input_json),
+            "output_json": str(output_json),
+            "output_xbs": str(output_xbs) if output_xbs else "",
+            "default_weight": default_weight,
+            "source_alias": alias,
+            "mode": mode,
+            "changed": bool(changes),
+            "changes": changes,
+            "schema_check": "PASS",
+            "editor_check": editor_result,
+            "editor_risk_count": len(risks),
+            "editor_high_risk_count": len(high_risks),
+            "editor_risks": [
+                {
+                    "level": r.level,
+                    "code": r.code,
+                    "path": r.path,
+                    "message": r.message,
+                }
+                for r in risks
+            ],
+        }
+
+        if report_path:
+            report_path.parent.mkdir(parents=True, exist_ok=True)
+            with report_path.open("w", encoding="utf-8") as f:
+                json.dump(summary, f, ensure_ascii=False, indent=2)
+            print(f"REPORT: {report_path}")
+
+        print(f"OK_JSON: {output_json}")
+        if output_xbs:
+            print(f"OK_XBS: {output_xbs}")
+        print(f"SCHEMA_CHECK: {summary['schema_check']}")
+        print(f"EDITOR_CHECK: {summary['editor_check']}")
+        print(f"CHANGE_COUNT: {len(changes)}")
+    finally:
+        if temp_dir_ctx:
+            temp_dir_ctx.cleanup()
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Cross-platform xbs conversion helper for JSON <-> XBS."
+        description="Xiangse-only (StandarReader 2.56.1) helper for JSON <-> XBS conversion and validation."
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -504,6 +599,42 @@ def build_parser() -> argparse.ArgumentParser:
         help="Optional report JSON output path",
     )
     p8.set_defaults(func=_command_normalize_2561)
+
+    p9 = sub.add_parser(
+        "import-fix",
+        help="Fix legacy/invalid source (.xbs/.json) to Xiangse 2.56.1 import-ready JSON",
+    )
+    p9.add_argument(
+        "-i",
+        "--input",
+        required=True,
+        help="Input .xbs or .json file",
+    )
+    p9.add_argument(
+        "-o",
+        "--output",
+        required=True,
+        help="Output fixed JSON path",
+    )
+    p9.add_argument(
+        "--to-xbs",
+        help="Optional output XBS path rebuilt from fixed JSON",
+    )
+    p9.add_argument(
+        "--report",
+        help="Optional report JSON output path",
+    )
+    p9.add_argument(
+        "--default-weight",
+        default="9999",
+        help='Default weight string when missing/invalid (default: "9999")',
+    )
+    p9.add_argument(
+        "--strict-requestinfo",
+        action="store_true",
+        help="Treat method:/data:/headers: in requestInfo as schema errors.",
+    )
+    p9.set_defaults(func=_command_import_fix)
 
     return parser
 

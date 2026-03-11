@@ -121,8 +121,8 @@ def _check_one_source(
             errors.append(f"[{name}] 缺少顶层必需字段: {req}")
 
     st = src.get("sourceType")
-    if st is not None and st != "text":
-        warnings.append(f"[{name}] sourceType={st}（当前流程默认 text 书源）")
+    if st != "text":
+        errors.append(f"[{name}] sourceType 必须为 'text'，当前为: {st!r}")
 
     if "weight" in src and not isinstance(src.get("weight"), str):
         warnings.append(
@@ -173,7 +173,11 @@ def _check_one_source(
                 )
 
         req_info = obj.get("requestInfo")
-        if isinstance(req_info, str):
+        if not isinstance(req_info, str):
+            errors.append(
+                f"[{name}] 动作 {action} requestInfo 类型非法: {type(req_info).__name__}"
+            )
+        else:
             for pat, msg in BAD_REQUESTINFO_PATTERNS:
                 if pat.search(req_info):
                     errors.append(f"[{name}] 动作 {action}: {msg}")

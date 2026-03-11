@@ -5,6 +5,7 @@
 - 章节列表能出标题但抓不到 `url/detailUrl`
 - 书源命名与发布规范统一
 - 需要把任务交给弱模型（如 Tare）执行
+- 当前约束版本：仅香色闺阁（StandarReader）`2.56.1`
 
 ## 固定规则
 1. `sourceName` 保持站点名与版本号语义，不追加公众号后缀。
@@ -47,15 +48,19 @@
    - 禁用：`bookSourceName/bookSourceUrl/bookSourceGroup/httpUserAgent`
    - 禁用：`java.getParams()`、`method:`、`data:`、`headers:`
    - 使用：`sourceName/sourceUrl/sourceType` + `config/params/result` + `POST/httpParams/httpHeaders`
-13. StandarReader 2.56.1 若出现“编辑保存闪退”，切换 `editor_safe` 兼容模式：
+13. `sourceType` 必须为 `"text"`（硬约束），不再接受 `0/text` 混用。
+14. 遇到旧源导入失败时先走导入修复流水线：
+   - `python tools/scripts/xbs_tool.py import-fix -i <input.xbs|input.json> -o <fixed.json> --to-xbs <fixed.xbs> --report <fix_report.json>`
+   - 再执行：`check_xiangse_schema.py -> check-editor -> json2xbs`
+15. StandarReader 2.56.1 若出现“编辑保存闪退”，切换 `editor_safe` 兼容模式：
    - `python tools/scripts/xbs_tool.py check-editor -i <json>`
    - `python tools/scripts/xbs_tool.py profile -i <json> -o <editor_safe.json> --profile editor_safe`
    - `python tools/scripts/xbs_tool.py build-ab -i <json> -d <out_dir> --prefix <name> --to-xbs`
    - 若日志出现 `-[__NSCFNumber length]`，先检查 `weight` 是否被写成数字类型。
-14. `weight` 必须使用整数字符串（例如 `"9999"`），默认 `"9999"`，禁止数字类型。
-15. 需要批量修复历史书源时使用：
+16. `weight` 必须使用整数字符串（例如 `"9999"`），默认 `"9999"`，禁止数字类型。
+17. 需要批量修复历史书源时使用：
    - `python tools/scripts/xbs_tool.py normalize-2561 -i <json_or_dir> --rebuild-xbs --report <report.json>`
-16. `editor_safe` 仅做字段降级，不改变香色顶层结构（仍保持 `{alias:{sourceName...}}`）。
+18. `editor_safe` 仅做字段降级，不改变香色顶层结构（仍保持 `{alias:{sourceName...}}`）。
 
 ## 推荐模板
 ```json

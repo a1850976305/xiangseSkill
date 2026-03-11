@@ -7,7 +7,7 @@ description: Build, debug, and maintain 香色闺阁/香色书源 JSON and XBS f
 
 ## Overview
 
-Implement or fix text book sources for 香色闺阁-compatible formats with a deterministic workflow: analyze target pages, generate rule JSON, convert to XBS, and validate with real HTML samples.
+Implement or fix text book sources for 香色闺阁（StandarReader 2.56.1 only）with a deterministic workflow: analyze target pages, generate rule JSON, convert to XBS, and validate with real HTML samples.
 
 ## Workflow
 
@@ -20,6 +20,9 @@ Implement or fix text book sources for 香色闺阁-compatible formats with a de
 ## Step 1: Inspect Input and Site
 
 - Confirm whether input is `.json` or `.xbs`.
+- Legacy source import-first rule:
+  - if input is `.xbs`, run `python tools/scripts/xbs_tool.py import-fix -i <input.xbs> -o <fixed.json> --to-xbs <fixed.xbs> --report <fix_report.json>`
+  - continue all checks/conversion with `<fixed.json>` / `<fixed.xbs>`
 - For new source rules, fetch and inspect:
   - search page
   - detail page
@@ -56,6 +59,7 @@ Required action fields:
 - Top-level must be: `{ \"<sourceAlias>\": { ... } }` (source config nested under alias key).
 - Source config must use:
   - `sourceName/sourceUrl/sourceType/enable/weight`
+- `sourceType` must be exactly `"text"` (Xiangse 2.56.1 hard constraint).
 - Forbidden legacy top-level keys:
   - `bookSourceName/bookSourceUrl/bookSourceGroup/httpUserAgent`
 - `requestInfo @js` runtime must use `config/params/result`.
@@ -275,6 +279,7 @@ Preferred (cross-platform, including Windows/Termux):
 - `python tools/scripts/xbs_tool.py json2xbs -i <input.json> -o <output.xbs>`
 - `python tools/scripts/xbs_tool.py xbs2json -i <input.xbs> -o <output.json>`
 - `python tools/scripts/xbs_tool.py roundtrip -i <input.json> -p <output_prefix>`
+- `python tools/scripts/xbs_tool.py import-fix -i <input.xbs|input.json> -o <fixed.json> [--to-xbs <fixed.xbs>] [--report <fix_report.json>]`
 - `python tools/scripts/xbs_tool.py check-editor -i <input.json>`
 - `python tools/scripts/xbs_tool.py profile -i <input.json> -o <editor_safe.json> --profile editor_safe`
 - `python tools/scripts/xbs_tool.py build-ab -i <input.json> -d <out_dir> --prefix <name> --to-xbs`
